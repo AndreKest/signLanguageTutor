@@ -15,5 +15,5 @@
     "workspaceMount": "source=${localWorkspaceFolder},target=/workdir,type=bind",
     "workspaceFolder": "/workdir",
     "forwardPorts": [5000],
-    "runArgs": ["--env-file",".devcontainer/devcontainer.env", "--device=/dev/video0:/dev/video0]
+    "runArgs": ["--env-file",".devcontainer/devcontainer.env"]
 }

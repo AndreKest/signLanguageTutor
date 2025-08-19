@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Grid, Paper, Typography, Button, Box, Card, CardMedia, CardContent, CardActions, alpha } from '@mui/material';
 import { fetchNewImageForLetter  } from './apiService';
+import WebcamFeed from "./WebcamFeed";
 
 
 // =================================================================================================
@@ -76,7 +77,8 @@ export default function AlphabetMode({ onGoToMenu }){
                 {/* Webcam feed */}
                 <Grid item xs={12} sm={6} md={5}>
                     <Card sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-                        <CardMedia component='img' src='http://127.0.0.1:5000/api/webcam' alt="Webcam feed" sx={{ height: 350, objectFit: 'cover', backgroundColor: 'background.paper' }} />
+                        <WebcamFeed />
+                        {/* <CardMedia component='img' src='http://127.0.0.1:5000/api/webcam' alt="Webcam feed" sx={{ height: 350, objectFit: 'cover', backgroundColor: 'background.paper' }} /> */}
                         {/* <CardMedia component='img' image={webcamImageUrl} alt="Webcam feed" sx={{ height: 350, objectFit: 'cover', backgroundColor: 'background.paper' }} /> */}
                         Card
                         <CardContent sx={{ flexGrow: 1 }}>

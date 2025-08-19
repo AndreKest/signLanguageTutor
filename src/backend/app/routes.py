@@ -1,10 +1,14 @@
 import os
 import json
 
-from flask import Flask, jsonify, send_file, Response
+from flask import Flask, jsonify, send_file, request
 from flask_cors import CORS
 
-from .utils import get_random_image_for_letter, gen_frames
+from PIL import Image
+import io
+import numpy as np
+
+from .utils import get_random_image_for_letter
 
 app = Flask(__name__)
 CORS(app)
@@ -17,7 +21,7 @@ def getAvailableRoutes():
     return {
         "available routes": [
             "/get_new_alphabet_image"
-            "/get_webcam_feed"
+            "/process_frame"
             ]
         }
 
@@ -38,8 +42,32 @@ def get_new_alphabet_image(letter):
         # If no image is found, return a 404 Not Found error with a JSON message.
         return jsonify({"error": f"Image not found for letter: {letter}"}), 404
 
-@app.route('/api/webcam', methods=['GET'])
-def get_webcam_feed():
-    """ Streaming route for webcam as MJPEG. """
-    return Response(gen_frames(), mimetype='multipart/x-mixed-replace; boundary=frame')
-    
+@app.route("/api/process-frame", methods=["POST", "GET"])
+def process_frame():
+    if "frame" not in request.files:
+        return jsonify({"error": "No frame provided"}), 400
+
+    file = request.files["frame"]
+    image_bytes = file.read()
+    image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
+
+    # model process
+    # ToDo
+
+    # Mock up (for testing purpose)
+    cls = 0
+    conf = 0.9
+
+    detections = []
+
+    # Create 4 random int numbers for bbox
+    x1, y1 = np.random.randint(0, 100, size=2)
+    x2, y2 = np.random.randint(100, 300, size=2)
+
+    detections.append({
+        "class": 1,
+        "confidence": 0.9,
+        "bbox": [int(x1), int(y1), int(x2), int(y2)]
+    })
+
+    return jsonify({"detections": detections})
