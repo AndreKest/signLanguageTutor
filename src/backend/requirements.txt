@@ -1,0 +1,9 @@
+numpy
+matplotlib
+opencv-python
+Flask
+flask_cors
+gunicorn
+requests
+ultralytics
+python-dotenv

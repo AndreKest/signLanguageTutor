@@ -1,0 +1,19 @@
+{
+    "name": "ASLbackend",
+    "build": {
+        "dockerfile": "Dockerfile",
+        "context": ".."
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-python.python"
+            ],
+            "settings": {}
+        }
+    },
+    "workspaceMount": "source=${localWorkspaceFolder},target=/workdir,type=bind",
+    "workspaceFolder": "/workdir",
+    "forwardPorts": [5000],
+    "runArgs": ["--env-file",".devcontainer/devcontainer.env", "--device=/dev/video0:/dev/video0]
+}

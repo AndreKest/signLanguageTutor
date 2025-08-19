@@ -1,0 +1,8 @@
+{
+    "name": "ASL-frontend",
+    "dockerComposeFile": ["docker-compose.yml"],
+    "service": "vscode",
+    "runServices": ["vscode"],
+    "shutdownAction": "stopCompose",
+    "workspaceFolder": "/workdir"
+}
