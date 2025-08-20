@@ -9,9 +9,12 @@ import io
 import numpy as np
 
 from .utils import get_random_image_for_letter
+from .model import ASLModel
 
 app = Flask(__name__)
 CORS(app)
+
+asl_model = ASLModel(weights_path="models/asl_model_50_epochs.pt", device="cpu")
 
 
 # List all available routes
@@ -31,6 +34,7 @@ def get_new_alphabet_image(letter):
     """
     API endpoint to get a random sign language image for a specific letter.
     """
+    print("Letter: ", letter)
     # Use the model function to get the path to a random image.
     image_path = get_random_image_for_letter(letter)
 
@@ -52,22 +56,19 @@ def process_frame():
     image = Image.open(io.BytesIO(image_bytes)).convert("RGB")
 
     # model process
-    # ToDo
+    detections = asl_model.predict(image, conf_threshold=0.5)
 
-    # Mock up (for testing purpose)
-    cls = 0
-    conf = 0.9
-
-    detections = []
-
-    # Create 4 random int numbers for bbox
-    x1, y1 = np.random.randint(0, 100, size=2)
-    x2, y2 = np.random.randint(100, 300, size=2)
-
-    detections.append({
-        "class": 1,
-        "confidence": 0.9,
-        "bbox": [int(x1), int(y1), int(x2), int(y2)]
-    })
+    # # Mock up (for testing purpose)
+    # cls = 0
+    # conf = 0.9
+    # detections = []
+    # # Create 4 random int numbers for bbox
+    # x1, y1 = np.random.randint(0, 100, size=2)
+    # x2, y2 = np.random.randint(100, 300, size=2)
+    # detections.append({
+    #     "class": int(np.random.randint(0,26, size=1)),
+    #     "confidence": 0.9,
+    #     "bbox": [int(x1), int(y1), int(x2), int(y2)]
+    # })
 
     return jsonify({"detections": detections})

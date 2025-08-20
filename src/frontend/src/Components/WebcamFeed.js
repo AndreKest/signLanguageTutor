@@ -1,58 +1,35 @@
-// import React, { useEffect, useRef } from "react";
-// import { CardMedia } from "@mui/material";
-
-// export default function WebcamFeed() {
-//   const videoRef = useRef(null);
-
-//   useEffect(() => {
-//     async function initCamera() {
-//       try {
-//         const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-//         if (videoRef.current) {
-//           videoRef.current.srcObject = stream;
-//         }
-//       } catch (err) {
-//         console.error("Kamera-Zugriff verweigert oder nicht verfügbar:", err);
-//       }
-//     }
-//     initCamera();
-//   }, []);
-
-//   return (
-//     <CardMedia
-//       component="video"
-//       ref={videoRef}
-//       autoPlay
-//       playsInline
-//       muted
-//       sx={{ height: 350, objectFit: "cover", backgroundColor: "background.paper" }}
-//     />
-//   );
-// }
-
 import React, { useEffect, useRef, useState } from "react";
 
-export default function WebcamFeed() {
+export default function WebcamFeed({ onDetections }) {
   const videoRef = useRef(null);
   const canvasRef = useRef(null);
   const [detections, setDetections] = useState([]);
 
-  // Kamera starten
+  // Start Camera and stop when unmounted with return
   useEffect(() => {
+    let stream;
+
     async function initCamera() {
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-        if (videoRef.current) {
-          videoRef.current.srcObject = stream;
-        }
+        stream = await navigator.mediaDevices.getUserMedia({ video: true });
+        if (videoRef.current) videoRef.current.srcObject = stream;
       } catch (err) {
-        console.error("Kamera-Zugriff verweigert oder nicht verfügbar:", err);
+        console.error("Camera not available:", err);
+        if (onCameraError) onCameraError("Camera not available or permission denied.");
       }
     }
+
     initCamera();
+
+    // Cleanup: Stream stoppen, wenn Component unmountet
+    return () => {
+      if (stream) {
+        stream.getTracks().forEach(track => track.stop());
+      }
+    };
   }, []);
 
-  // Alle 1 Sekunde ein Frame an Backend schicken
+  // Send frame every second to backend
   useEffect(() => {
     const interval = setInterval(() => {
       if (!videoRef.current) return;
@@ -78,6 +55,11 @@ export default function WebcamFeed() {
           if (response.ok) {
             const data = await response.json();
             setDetections(data.detections);
+
+            // Callback to parent component
+            if (onDetections) {
+              onDetections(data.detections);
+            }
           }
         } catch (err) {
           console.error("Error sending frame:", err);
@@ -86,7 +68,7 @@ export default function WebcamFeed() {
     }, 1000);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [onDetections]);
 
   // Bounding Boxes zeichnen
   useEffect(() => {
@@ -100,25 +82,32 @@ export default function WebcamFeed() {
     ctx.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
 
     detections.forEach((det) => {
+      if (!det.bbox || det.class === null) return; //if no detection, draw nothing
+
       const [x1, y1, x2, y2] = det.bbox;
+
+      // Flip (horizontal flip)
+      const mirroredX1 = canvasRef.current.width - x2;
+      const mirroredX2 = canvasRef.current.width - x1;
+
       ctx.strokeStyle = "lime";
       ctx.lineWidth = 2;
-      ctx.strokeRect(x1, y1, x2 - x1, y2 - y1);
+      ctx.strokeRect(mirroredX1, y1, mirroredX2 - mirroredX1, y2 - y1);
 
       ctx.fillStyle = "lime";
       ctx.font = "16px Arial";
-      ctx.fillText(`${det.class} (${det.confidence})`, x1, y1 - 5);
+      ctx.fillText(`${det.class} (${det.confidence})`, mirroredX1, y1 - 5);
     });
   }, [detections]);
 
   return (
-    <div style={{ position: "relative", width: "100%", height: "350px" }}>
+    <div style={{ position: "relative", width: "100%", height: "500px" }}>
       <video
         ref={videoRef}
         autoPlay
         playsInline
         muted
-        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px" }}
+        style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "12px", transform: "scaleX(-1)" }}
       />
       <canvas
         ref={canvasRef}
