@@ -1,156 +1,3 @@
-// import React, { useState, useEffect } from 'react';
-// import { Grid, Paper, Typography, Button, Box, Card, CardMedia, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert} from '@mui/material';
-// import { fetchNewImageForLetter  } from './apiService';
-// import WebcamFeed from "./WebcamFeed";
-
-
-// // =================================================================================================
-// // Constants
-// // =================================================================================================
-// const alphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
-// const getRandomItem = (arr) => arr[Math.floor(Math.random() * arr.length)];     // Helper function to get a random item from an array
-
-// export default function AlphabetMode({ onGoToMenu }){
-//     // ==================================================
-//     // State Management
-//     // ==================================================
-//     const [currentLetter, setCurrentLetter] = useState('');
-//     const [signImageUrl, setSignImageUrl] = useState('');
-//     const [detectedClass, setDetectedClass] = useState(null);
-//     const [successOpen, setSuccessOpen] = useState(false);
-
-//     // Error handling Snackbar
-//     const [error, setError] = useState({ open: false, message: '' });
-
-//     // ==================================================
-//     // Helper
-//     // ==================================================
-//     // Function to convert number (1–26) -> Char (A-Z)
-//     const classToLetter = (cls) => {
-//         if (!cls || cls < 1 || cls > 26) return "?";
-//         return alphabet[cls - 1];
-//     };
-
-
-//     // ==================================================
-//     // API Communication
-//     // ==================================================
-//     const fetchAndSetSignImage = (letter) => {
-//         if (!letter) return;
-//         fetchNewImageForLetter(letter)
-//         .then(imageUrl => setSignImageUrl(imageUrl))
-//         .catch(error => {
-//             console.error('Error fetching image:', error);
-//             setSignImageUrl('https://placehold.co/600x400/eee/000?text=Error');
-//             // Set the error state to show the Snackbar
-//             setError({ open: true, message: 'Failed to fetch image. The backend might be unavailable.' });
-//         });
-//     };
-
-//     // ==================================================
-//     // Event Handlers
-//     // ==================================================
-//     const handleGetAnotherImage = () => fetchAndSetSignImage(currentLetter);
-//     const handleNextLetter = () => {
-//         const newLetter = getRandomItem(alphabet);
-//         setCurrentLetter(newLetter);
-//         setSuccessOpen(false);
-//         setDetectedClass(null);
-//     };
-
-//     const handleDetection = (cls) => {
-//         setDetectedClass(cls);
-//         const detectedLetter = classToLetter(cls);
-//         if (detectedLetter === currentLetter) {
-//             setSuccessOpen(true);
-//         }
-//     };
-
-//     // Handler to close the error Snackbar
-//     const handleCloseError = (event, reason) => {
-//         if (reason === 'clickaway') {
-//             return;
-//         }
-//         setError({ ...error, open: false });
-//     };
-
-//     // ==================================================
-//     // Lifecycle Effects
-//     // ==================================================
-//     // Initial letter
-//     useEffect(() => {
-//         setCurrentLetter(getRandomItem(alphabet));
-//     }, []);
-
-//     // Fetch sign image whenever currentLetter changes
-//     useEffect(() => {
-//         if (currentLetter) {
-//             fetchAndSetSignImage(currentLetter);
-//         }
-//     }, [currentLetter]);
-
-
-//     return (
-//         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 2 }}>
-//             <Grid container spacing={3} sx={{ justifyContent: 'center', maxWidth: '1200px' }}>
-//                 {/* Static letter image */}
-//                 <Grid item xs={12} sm={6} md={5}>
-//                     <Card sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column'}}>
-//                         <CardMedia component="img" image={signImageUrl} alt={`Sign for ${currentLetter}`} sx={{ height: 350, objectFit: 'contain', p: 2, backgroundColor: 'background.paper' }} onError={(e) => { e.target.src='https://placehold.co/600x400/eee/000?text=Not+Found'; showError('Sign image not found.'); }} />
-//                         <CardContent sx={{ flexGrow: 1 }}>
-//                             <Typography gutterBottom variant="h5" component="div" sx={{ textAlign: 'center' }}>
-//                                 Make the sign for: <strong style={{ fontSize: '2rem' }}>{currentLetter}</strong>
-//                             </Typography>
-//                         </CardContent>
-//                         <CardActions sx={{ justifyContent: 'center' }}>
-//                             <Button size="small" onClick={handleGetAnotherImage}>Get Another Image</Button>
-//                         </CardActions>
-//                     </Card>
-//                 </Grid>
-//                 {/* ============== */}
-//                 {/* Webcam feed */}
-//                 <Grid item xs={12} sm={6} md={5}>
-//                     <Card sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
-//                         <WebcamFeed onDetections={(dets) => {
-//                             if (dets.length > 0 && dets[0].class !== null) handleDetection(dets[0].class);
-//                         }}/>
-//                         <CardContent sx={{ flexGrow: 1 }}>
-//                             <Typography gutterBottom variant='h5' component='div' sx={{ textAlign: 'center' }}>Your Camera</Typography>
-//                             <Typography variant='body2' color="text.secondary" sx={{ textAlign: 'center' }}>The model will detect your hand sign here.</Typography>
-//                             <Typography gutterBottom variant='h5' align='center'>
-//                                 {detectedClass ? `Detected: ${classToLetter(detectedClass)}` : "Waiting for detection..."}
-//                             </Typography>
-//                         </CardContent>
-//                     </Card>
-//                 </Grid>
-//                 {/* ============== */}
-//             </Grid>
-//             {/* Buttons */}
-//             <Paper sx={{ p: 2, display:'flex', justifyContent: 'center', gap: 2}}>
-//                 <Button variant='outlined' color='error' onClick={onGoToMenu}>Stop & Go to Menu</Button>
-//                 <Button variant='contained' color='success' onClick={handleNextLetter}>Next Letter</Button>
-//             </Paper>
-//             {/* ============== */}
-//             {/* Success Dialog */}
-//             <Dialog open={successOpen} onClose={() => setSuccessOpen(false)}>
-//                 <DialogTitle>Congratulations!</DialogTitle>
-//                 <DialogContent>
-//                     <Typography>You made the correct character: <b>{currentLetter}</b></Typography>
-//                 </DialogContent>
-//                 <DialogActions>
-//                     <Button onClick={onGoToMenu} color="error">Go to Menu</Button>
-//                     <Button onClick={handleNextLetter} color="success">Next Letter</Button>
-//                 </DialogActions>
-//             </Dialog>
-//             {/* New Error Snackbar component */}
-//             <Snackbar open={error.open} autoHideDuration={6000} onClose={handleCloseError} anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}>
-//                 <Alert onClose={handleCloseError} severity="error" sx={{ width: '100%' }}>
-//                     {error.message}
-//                 </Alert>
-//             </Snackbar>
-//         </Box>
-//     );
-// }
 import React, { useState, useEffect } from 'react';
 
 import { Grid, Paper, Typography, Button, Box, Card, CardMedia, CardContent, CardActions, Dialog, DialogTitle, DialogContent, DialogActions, Snackbar, Alert } from '@mui/material';
@@ -175,7 +22,7 @@ export default function AlphabetMode({ onGoToMenu }) {
     const [detectedClass, setDetectedClass] = useState(null);
     const [successOpen, setSuccessOpen] = useState(false);
 
-    // NEW: Error snackbar state
+    // Error snackbar state
     const [errorOpen, setErrorOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
@@ -238,7 +85,6 @@ export default function AlphabetMode({ onGoToMenu }) {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', width: '100%', gap: 2 }}>
-
             <Grid container spacing={3} sx={{ justifyContent: 'center', maxWidth: '1200px' }}>
                 {/* Static letter image */}
                 <Grid item xs={12} sm={6} md={5}>
@@ -264,7 +110,7 @@ export default function AlphabetMode({ onGoToMenu }) {
                         </CardActions>
                     </Card>
                 </Grid>
-
+                {/* ============== */}
                 {/* Webcam feed */}
                 <Grid item xs={12} sm={6} md={5}>
                     <Card sx={{ width: '100%', height: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -282,13 +128,13 @@ export default function AlphabetMode({ onGoToMenu }) {
                     </Card>
                 </Grid>
             </Grid>
-
+            {/* ============== */}
             {/* Buttons */}
             <Paper sx={{ p: 2, display:'flex', justifyContent: 'center', gap: 2}}>
                 <Button variant='outlined' color='error' onClick={onGoToMenu}>Stop & Go to Menu</Button>
                 <Button variant='contained' color='success' onClick={handleNextLetter}>Next Letter</Button>
             </Paper>
-
+            {/* ============== */}
             {/* Success Dialog */}
             <Dialog open={successOpen} onClose={() => setSuccessOpen(false)}>
                 <DialogTitle>Congratulations!</DialogTitle>
@@ -300,7 +146,7 @@ export default function AlphabetMode({ onGoToMenu }) {
                     <Button onClick={handleNextLetter} color="success">Next Letter</Button>
                 </DialogActions>
             </Dialog>
-
+            {/* ============== */}
             {/* Error Snackbar */}
             <Snackbar 
                 open={errorOpen} 
@@ -315,3 +161,5 @@ export default function AlphabetMode({ onGoToMenu }) {
         </Box>
     );
 }
+
+
