@@ -26,6 +26,9 @@ export default function AlphabetMode({ onGoToMenu }) {
     const [errorOpen, setErrorOpen] = useState(false);
     const [errorMessage, setErrorMessage] = useState('');
 
+    // Queue for multiple success messages
+    const [messages, setMessages] = useState([]);
+
     // ==================================================
     // Helper
     // ==================================================
@@ -62,13 +65,28 @@ export default function AlphabetMode({ onGoToMenu }) {
         setDetectedClass(null);
     };
 
+    const addMessage = (letter, type) => {
+        const id = Date.now() + Math.random(); // unique id
+        setMessages(prev => [...prev, { id, letter, type }]);
+
+        // Remove this specific message after 4 seconds
+        setTimeout(() => {
+            setMessages(prev => prev.filter(m => m.id !== id));
+        }, 4000);
+    };
+
     const handleDetection = (cls) => {
         setDetectedClass(cls);
         const detectedLetter = classToLetter(cls);
+
         if (detectedLetter === currentLetter) {
+            addMessage(detectedLetter, 'success'); // green
             setSuccessOpen(true);
+        } else if (detectedLetter !== currentLetter && detectedLetter !== "?") {
+            addMessage(detectedLetter, 'error'); // red
         }
     };
+
 
     // ==================================================
     // Lifecycle Effects
@@ -158,6 +176,22 @@ export default function AlphabetMode({ onGoToMenu }) {
                     {errorMessage}
                 </Alert>
             </Snackbar>
+            {/* Success Snackbars */}
+            {messages.map((msg, index) => (
+                <Snackbar
+                    key={msg.id}
+                    open={true}
+                    anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
+                    sx={{ mb: `${index * 60}px` }} // stack upwards
+                >
+                    <Alert
+                        severity={msg.type} // "success" or "error"
+                        sx={{ width: '100%' }}
+                    >
+                        {msg.type === 'success' ? 'Correct' : 'Wrong'} letter detected: <b>{msg.letter}</b>
+                    </Alert>
+                </Snackbar>
+            ))}
         </Box>
     );
 }
