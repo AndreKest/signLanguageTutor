@@ -1,6 +1,10 @@
-./data
+./data/test
+./data/train
+./data/val
+
 ./my-env
 .env
+
 *.zip
 
 # MacOS artefacts
